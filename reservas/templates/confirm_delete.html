@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Confirmar eliminación</h3>
+<form method="post">
+  {% csrf_token %}
+  <p>¿Estás seguro que deseas eliminar?</p>
+  <button class="btn btn-danger" type="submit">Sí, eliminar</button>
+  <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

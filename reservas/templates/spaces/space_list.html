@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Espacios</h2>
+{% if user.is_authenticated and user.is_admin %}
+  <a href="{% url 'space-create' %}" class="btn btn-primary mb-2">Crear espacio</a>
+{% endif %}
+<ul class="list-group">
+  {% for s in object_list %}
+    <li class="list-group-item">
+      <a href="{{ s.get_absolute_url }}">{{ s.name }}</a> - {{ s.get_type_display }} - Capacidad: {{ s.capacity }}
+      {% if user.is_authenticated and user.is_admin %}
+        <span class="float-right">
+          <a href="{% url 'space-update' s.pk %}" class="btn btn-sm btn-outline-info">Editar</a>
+          <a href="{% url 'space-delete' s.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+        </span>
+      {% endif %}
+    </li>
+  {% empty %}
+    <li class="list-group-item">No hay espacios.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

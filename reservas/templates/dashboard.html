@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1 class="mb-4">Panel de Control</h1>
+<div class="row mb-3">
+  <div class="col-md-4">
+    <div class="card text-white bg-info mb-3">
+      <div class="card-header">Total de Espacios</div>
+      <div class="card-body">
+        <h2 class="card-title">{{ total_spaces }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card text-white bg-primary mb-3">
+      <div class="card-header">Total de Reservas</div>
+      <div class="card-body">
+        <h2 class="card-title">{{ total_reservations }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-body">
+        <canvas id="chartByMonth"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-body">
+        <canvas id="chartTopSpaces"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-body">
+        <canvas id="chartByWeek"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-body">
+        <canvas id="chartTasaUso"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+<h4>Reservas recientes</h4>
+<ul class="list-group mb-5">
+  {% for r in recent_reservations %}
+    <li class="list-group-item">
+      {{ r.date }} - <b>{{ r.space.name }}</b> - {{ r.user.username }} - <span class="badge badge-secondary">{{ r.status }}</span>
+    </li>
+  {% empty %}
+    <li class="list-group-item">No hay reservas recientes.</li>
+  {% endfor %}
+</ul>
+<script>
+const months = JSON.parse('{{ chart_months|default:"[]"|escapejs }}');
+const monthCounts = JSON.parse('{{ chart_month_counts|default:"[]"|escapejs }}');
+const ctx = document.getElementById('chartByMonth').getContext('2d');
+new Chart(ctx, { type: 'bar', data: { labels: months, datasets: [{ label: 'Reservas por mes', data: monthCounts, backgroundColor:'#007bff' }] } });
+const topLabels = JSON.parse('{{ top_labels|default:"[]"|escapejs }}');
+const topValues = JSON.parse('{{ top_values|default:"[]"|escapejs }}');
+const ctx2 = document.getElementById('chartTopSpaces').getContext('2d');
+new Chart(ctx2, { type: 'pie', data: { labels: topLabels, datasets: [{ data: topValues, label: 'Top salas', backgroundColor:['#007bff','#17a2b8','#6c757d','#28a745','#ffc107'] }] } });
+// Gráfico reservas por semana
+const weeks = JSON.parse('{{ chart_weeks|default:"[]"|escapejs }}');
+const weekCounts = JSON.parse('{{ chart_week_counts|default:"[]"|escapejs }}');
+const ctxW = document.getElementById('chartByWeek').getContext('2d');
+new Chart(ctxW, { type: 'bar', data: { labels: weeks, datasets: [{ label: 'Reservas por semana', data: weekCounts, backgroundColor:'#28a745' }] } });
+// Gráfico tasa de uso por sala
+const tasaLabels = JSON.parse('{{ chart_tasa_labels|default:"[]"|escapejs }}');
+const tasaUso = JSON.parse('{{ chart_tasa_uso|default:"[]"|escapejs }}');
+const ctxT = document.getElementById('chartTasaUso').getContext('2d');
+new Chart(ctxT, { type: 'bar', data: { labels: tasaLabels, datasets: [{ label: 'Tasa de uso (%)', data: tasaUso, backgroundColor:'#ffc107' }] } });
+</script>
+{% endblock %}

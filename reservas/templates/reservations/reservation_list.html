@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Reservas</h2>
+
+{% if user.is_admin %}
+  <form class="mb-2" method="post" action="{% url 'recordar-automatico' %}">
+    {% csrf_token %}
+    <button class="btn btn-outline-warning">Enviar recordatorios a reservas de mañana</button>
+  </form>
+{% endif %}
+
+<a class="btn btn-primary mb-2" href="{% url 'reservation-create' %}">Crear reserva</a>
+
+<ul class="list-group">
+  {% for r in object_list %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <span>
+        {{ r.date }} - {{ r.space.name }} - {{ r.user.username }} - {{ r.status }}
+      </span>
+      <span>
+        {% if user.is_authenticated and user.is_admin or user == r.user %}
+          <a href="{% url 'reservation-update' r.pk %}" class="btn btn-sm btn-outline-info">Editar</a>
+          <a href="{% url 'reservation-delete' r.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+        {% endif %}
+        {% if user.is_admin and r.status == 'PENDING' %}
+          <form method="post" action="{% url 'accion-reserva' r.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button name="accion" value="confirmar" class="btn btn-success btn-sm">Confirmar</button>
+            <button name="accion" value="rechazar" class="btn btn-danger btn-sm">Rechazar</button>
+          </form>
+        {% endif %}
+        {% if user.is_admin and r.user.email %}
+          <form method="post" action="{% url 'recordar-reserva' r.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn btn-warning btn-sm">Recordar</button>
+          </form>
+        {% endif %}
+      </span>
+    </li>
+  {% empty %}
+    <li class="list-group-item">No hay reservas.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

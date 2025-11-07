@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Filtrar y exportar reservas</h2>
+<form method="get" class="form-row mb-3">
+  <div class="form-group col-md-3">
+    <label for="fecha_inicio">Desde</label>
+    <input type="date" name="fecha_inicio" class="form-control" value="{{ request.GET.fecha_inicio }}">
+  </div>
+  <div class="form-group col-md-3">
+    <label for="fecha_fin">Hasta</label>
+    <input type="date" name="fecha_fin" class="form-control" value="{{ request.GET.fecha_fin }}">
+  </div>
+  <div class="form-group col-md-3">
+    <label for="espacio">Espacio</label>
+    <select name="espacio" class="form-control">
+      <option value="">Todos</option>
+      {% for s in espacios %}
+        <option value="{{ s.id }}" {% if request.GET.espacio == s.id|stringformat:'s' %}selected{% endif %}>{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="form-group col-md-2">
+    <label for="estado">Estado</label>
+    <select name="estado" class="form-control">
+      <option value="">Todos</option>
+      <option value="PENDING" {% if request.GET.estado == 'PENDING' %}selected{% endif %}>Pendiente</option>
+      <option value="CONFIRMED" {% if request.GET.estado == 'CONFIRMED' %}selected{% endif %}>Confirmada</option>
+      <option value="REJECTED" {% if request.GET.estado == 'REJECTED' %}selected{% endif %}>Rechazada</option>
+    </select>
+  </div>
+  <div class="form-group col-md-1 align-self-end">
+    <button type="submit" class="btn btn-info btn-block">Filtrar</button>
+  </div>
+</form>
+
+<div class="mb-3">
+  <a href="{% url 'export-excel' %}?{{ request.GET.urlencode }}" class="btn btn-outline-success">Exportar a Excel con filtro</a>
+  <a href="{% url 'export-pdf' %}?{{ request.GET.urlencode }}" class="btn btn-outline-danger">Exportar a PDF con filtro</a>
+</div>
+
+{% if reservas %}
+  <ul class="list-group">
+    {% for r in reservas %}
+      <li class="list-group-item">
+        {{ r.date }} - {{ r.space.name }} - {{ r.user.username }} - {{ r.status }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No hay reservas que coincidan con los filtros.</p>
+{% endif %}
+{% endblock %}
