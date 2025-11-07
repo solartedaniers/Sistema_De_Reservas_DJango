@@ -3,28 +3,26 @@ from django.views import generic
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import Space, Schedule, Reservation, CustomUser
-from .forms import CustomUserCreationForm, ReservationForm, ScheduleForm, SpaceForm
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-import io
 from django.template.loader import render_to_string
-from xhtml2pdf import pisa
-import pandas as pd
-from django.utils import timezone
-from django.db.models import Count
-from django.db import models
-import json
-from django.contrib import messages
+from django.core.mail import send_mail
+from django.core.serializers.json import DjangoJSONEncoder
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.db.models.functions import ExtractWeek
-from django.core.mail import send_mail
-from datetime import timedelta
 from django.utils import timezone
-import json
-from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.safestring import mark_safe
-
+from django.contrib import messages
+from django.db.models import Count
+from django.db.models.functions import ExtractWeek
+from django.db import models
+from datetime import timedelta
+import io
+import json
+import pandas as pd
+from xhtml2pdf import pisa
+from .models import Space, Schedule, Reservation, CustomUser
+from .forms import CustomUserCreationForm, ReservationForm, ScheduleForm, SpaceForm
 def enviar_recordatorio_reserva(request, pk):
     reserva = get_object_or_404(Reservation, pk=pk)
     if not request.user.is_admin():
@@ -334,15 +332,24 @@ class DashboardView(LoginRequiredMixin, generic.TemplateView):
 
 
 
+@login_required
 def calendar_view(request):
-    reservas = Reservation.objects.select_related('space').filter(status='CONFIRMED')
+    reservas = Reservation.objects.select_related('space', 'user').filter(status='CONFIRMED')
     events = []
+    is_admin = request.user.is_admin()  # <-- Cambia aquí y pon los paréntesis
     for r in reservas:
-        events.append({
-            'title': f'{r.space.name} ({r.user.username})',
-            'start': r.date.strftime('%Y-%m-%d'),
-            'espacio': r.space.name,
-            'color': '#007bff',
-        })
+        if is_admin:
+            events.append({
+                'title': f"{r.space.name} - {r.user.username}",
+                'start': r.date.strftime('%Y-%m-%d'),
+                'color': '#007bff',
+            })
+        else:
+            events.append({
+                'title': 'Ocupado',
+                'start': r.date.strftime('%Y-%m-%d'),
+                'color': '#dc3545',
+            })
     reservas_json = mark_safe(json.dumps(events, cls=DjangoJSONEncoder))
-    return render(request, 'calendar.html', {'reservas_json': reservas_json})
+    return render(request, 'calendar.html', {'reservas_json': reservas_json, 'is_admin': is_admin})
+    
