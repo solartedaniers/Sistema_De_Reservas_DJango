@@ -43,3 +43,4 @@ urllib3==2.5.0
 webencodings==0.5.1
 xhtml2pdf==0.2.17
 gunicorn
+python-dotenv
